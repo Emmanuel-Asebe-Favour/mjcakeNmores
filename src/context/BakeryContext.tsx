@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem, Order, OrderStatus, FulfillmentType, PaymentMethod, BakeryInfo } from '../types';
-import { BAKERY_INFO, INITIAL_PRODUCTS } from '../data/initialData';
+import { BAKERY_INFO } from '../data/initialData';
 
 interface BakeryContextType {
   bakeryInfo: BakeryInfo;
@@ -80,22 +80,15 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem(STORAGE_KEYS.BAKERY_INFO, JSON.stringify(updated));
   };
 
-  // Products
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return INITIAL_PRODUCTS;
-  });
+  // Products (loaded from the Go server)
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-  }, [products]);
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch((err) => console.error('Could not load products', err));
+  }, []);
 
   // Cart
   const [cart, setCart] = useState<CartItem[]>([]);

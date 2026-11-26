@@ -101,6 +101,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   // Logo upload state
   const [newLogoUrl, setNewLogoUrl] = useState('');
 
+  // Filtered Orders
+  // NOTE: all hooks (useState / useMemo) must stay ABOVE the early return below,
+  // so React sees the same hooks in the same order on every render.
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const matchesStatus =
+        orderStatusFilter === 'All' || order.status === orderStatusFilter;
+      const q = orderSearchQuery.toLowerCase();
+      const matchesSearch =
+        order.id.toLowerCase().includes(q) ||
+        order.customerName.toLowerCase().includes(q) ||
+        order.customerPhone.toLowerCase().includes(q) ||
+        (order.deliveryAddress && order.deliveryAddress.toLowerCase().includes(q));
+      return matchesStatus && matchesSearch;
+    });
+  }, [orders, orderStatusFilter, orderSearchQuery]);
+
   if (!isOpen) return null;
 
   // Handle Login
@@ -211,21 +228,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       reader.readAsDataURL(file);
     }
   };
-
-  // Filtered Orders
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const matchesStatus =
-        orderStatusFilter === 'All' || order.status === orderStatusFilter;
-      const q = orderSearchQuery.toLowerCase();
-      const matchesSearch =
-        order.id.toLowerCase().includes(q) ||
-        order.customerName.toLowerCase().includes(q) ||
-        order.customerPhone.toLowerCase().includes(q) ||
-        (order.deliveryAddress && order.deliveryAddress.toLowerCase().includes(q));
-      return matchesStatus && matchesSearch;
-    });
-  }, [orders, orderStatusFilter, orderSearchQuery]);
 
   // Save Delivery Fee
   const handleSaveDeliveryFee = (orderId: string) => {
